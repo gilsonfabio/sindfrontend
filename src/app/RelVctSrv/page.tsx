@@ -11,6 +11,7 @@ import {
   TDocumentDefinitions,
   Content,
   DynamicContent,
+  TableCell,
 } from "pdfmake/interfaces";
 
 import {
@@ -49,14 +50,13 @@ interface ChartData {
   total: number;
 }
 
-type PdfCell = {
-  text: string;
-  fontSize?: number;
-  margin?: number[];
-  alignment?: "left" | "right" | "center";
-  bold?: boolean;
-  style?: string;
-};
+type PdfTableBody = NonNullable<
+  Extract<Content, { table: unknown }> extends infer T
+    ? T extends { table: { body: infer B } }
+      ? B
+      : never
+    : never
+>;
 
 export default function RelVctSrv() {
   const router = useRouter();
@@ -154,66 +154,46 @@ export default function RelVctSrv() {
       },
     ];
 
-    const tableBody: PdfCell[][] = [
+    const tableBody: TableCell[][] = [
       [
-        {
-          text: "COMPRA",
-          style: "tableHeader",
-          fontSize: 10,
-        },
-        {
-          text: "VENCIMENTO",
-          style: "tableHeader",
-          fontSize: 10,
-        },
-        {
-          text: "CONVÊNIO",
-          style: "tableHeader",
-          fontSize: 10,
-        },
-        {
-          text: "PARCELA",
-          style: "tableHeader",
-          fontSize: 10,
-        },
-        {
-          text: "VALOR",
-          style: "tableHeader",
-          fontSize: 10,
-        },
+        { text: "COMPRA", style: "tableHeader", fontSize: 10 },
+        { text: "VENCIMENTO", style: "tableHeader", fontSize: 10 },
+        { text: "CONVÊNIO", style: "tableHeader", fontSize: 10 },
+        { text: "PARCELA", style: "tableHeader", fontSize: 10 },
+        { text: "VALOR", style: "tableHeader", fontSize: 10 },
       ],
 
-      ...parcelas.map((item) => [
-        {
-          text: item.cmpId.toString(),
-          fontSize: 9,
-          margin: [0, 2, 0, 2],
-        },
-        {
-          text: moment(item.parVctParcela)
-            .utc()
-            .format("DD-MM-YYYY"),
-          fontSize: 9,
-          margin: [0, 2, 0, 2],
-        },
-        {
-          text: item.cnvNomFantasia,
-          fontSize: 9,
-          margin: [0, 2, 0, 2],
-        },
-        {
-          text: `${item.parNroParcela}/${item.cmpQtdParcela}`,
-          fontSize: 9,
-          alignment: "center" as const,
-          margin: [0, 2, 0, 2],
-        },
-        {
-          text: formatCurrency(item.parVlrParcela),
-          fontSize: 9,
-          alignment: "right" as const,
-          margin: [0, 2, 0, 2],
-        },
-      ]),
+      ...parcelas.map(
+        (item): TableCell[] => [
+          {
+            text: item.cmpId.toString(),
+            fontSize: 9,
+            margin: [0, 2, 0, 2],
+          },
+          {
+            text: moment(item.parVctParcela).utc().format("DD-MM-YYYY"),
+            fontSize: 9,
+            margin: [0, 2, 0, 2],
+          },
+          {
+            text: item.cnvNomFantasia,
+            fontSize: 9,
+            margin: [0, 2, 0, 2],
+          },
+          {
+            text: `${item.parNroParcela}/${item.cmpQtdParcela}`,
+            fontSize: 9,
+            alignment: "center",
+            margin: [0, 2, 0, 2],
+          },
+          {
+            text: formatCurrency(item.parVlrParcela),
+            fontSize: 9,
+            alignment: "right",
+            margin: [0, 2, 0, 2],
+          },
+        ]
+      ),
     ];
 
     const details: Content[] = [
@@ -336,12 +316,13 @@ export default function RelVctSrv() {
                 <YAxis />
 
                 <Tooltip
-                  formatter={(value: number) =>
-                    Intl.NumberFormat("pt-BR", {
+                  formatter={(value) => {
+                    const numero = Number(value ?? 0);
+                    return Intl.NumberFormat("pt-BR", {
                       style: "currency",
                       currency: "BRL",
-                    }).format(value)
-                  }
+                    }).format(numero);
+                  }}
                 />
 
                 <Bar

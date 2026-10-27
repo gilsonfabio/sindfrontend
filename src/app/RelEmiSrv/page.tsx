@@ -43,15 +43,6 @@ interface ChartData {
   total: number;
 }
 
-type PdfCell = {
-  text: string;
-  fontSize?: number;
-  margin?: number[];
-  alignment?: "left" | "right" | "center";
-  bold?: boolean;
-  style?: string;
-};
-
 export default function RelEmiSrv() {
   const router = useRouter();
 
@@ -149,7 +140,7 @@ export default function RelEmiSrv() {
       },
     ];
 
-    const tableBody: PdfCell[][] = [
+    const tableBody: Content[][] = [
       [
         {
           text: "ID",
@@ -182,31 +173,31 @@ export default function RelEmiSrv() {
         {
           text: item.cmpId.toString(),
           fontSize: 9,
-          margin: [0, 2, 0, 2],
+          margin: [0, 2, 0, 2] as [number, number, number, number],
         },
         {
           text: moment(item.cmpEmissao)
             .utc()
             .format("DD-MM-YYYY"),
           fontSize: 9,
-          margin: [0, 2, 0, 2],
+          margin: [0, 2, 0, 2] as [number, number, number, number],
         },
         {
           text: item.cnvNomFantasia,
           fontSize: 9,
-          margin: [0, 2, 0, 2],
+          margin: [0, 2, 0, 2] as [number, number, number, number],
         },
         {
           text: item.cmpQtdParcela.toString(),
           fontSize: 9,
           alignment: "center" as const,
-          margin: [0, 2, 0, 2],
+          margin: [0, 2, 0, 2] as [number, number, number, number],
         },
         {
           text: formatCurrency(item.cmpVlrCompra),
           fontSize: 9,
           alignment: "right" as const,
-          margin: [0, 2, 0, 2],
+          margin: [0, 2, 0, 2] as [number, number, number, number],
         },
       ]),
     ];
@@ -330,14 +321,14 @@ export default function RelEmiSrv() {
                 <YAxis />
 
                 <Tooltip
-                  formatter={(value: number) =>
-                    Intl.NumberFormat("pt-BR", {
+                  formatter={(value) => {
+                    const numero = Number(value ?? 0);
+                    return Intl.NumberFormat("pt-BR", {
                       style: "currency",
                       currency: "BRL",
-                    }).format(value)
-                  }
+                    }).format(numero);
+                  }}
                 />
-
                 <Bar
                   dataKey="total"
                   fill="#2563EB"

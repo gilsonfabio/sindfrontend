@@ -3,7 +3,13 @@
 import React, { useState, useEffect } from "react";
 import pdfMake from "pdfmake/build/pdfmake";
 import pdfFonts from "pdfmake/build/vfs_fonts";
-import { TDocumentDefinitions, Content, DynamicContent } from "pdfmake/interfaces";
+import {
+  TDocumentDefinitions,
+  Content,
+  DynamicContent,
+  TableCell,
+} from "pdfmake/interfaces";
+
 import moment from "moment";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { useRouter } from "next/navigation";
@@ -30,14 +36,7 @@ interface ChartData {
   total: number;
 }
 
-type PdfCell = {
-  text: string;
-  fontSize?: number;
-  margin?: number[];
-  alignment?: "left" | "right" | "center";
-  bold?: boolean;
-  style?: string;
-};
+type PdfCell = TableCell;
 
 (pdfMake as unknown as { vfs: typeof pdfFonts.vfs }).vfs = pdfFonts.vfs;
 
@@ -87,21 +86,42 @@ const RelEmiCnvClient = ({ datIni, datFin, cnvId }: RelEmiCnvClientProps) => {
       { text: `Convênio: ${cnvNomFantasia}`, fontSize: 10, bold: true, margin: [0, 5, 0, 5] }
     ];
 
-    const tableBody: PdfCell[][] = [
+    const tableBody: TableCell[][] = [
       [
         { text: "ID", style: "tableHeader", fontSize: 10 },
         { text: "EMISSÃO", style: "tableHeader", fontSize: 10 },
         { text: "NOME SERVIDOR(A)", style: "tableHeader", fontSize: 10 },
         { text: "PLANO", style: "tableHeader", fontSize: 10 },
-        { text: "VLR. DA VENDA", style: "tableHeader", fontSize: 10 }
+        { text: "VLR. DA VENDA", style: "tableHeader", fontSize: 10 },
       ],
-      ...vendas.map(v => [
-        { text: v.cmpId.toString(), fontSize: 9, margin: [0, 2, 0, 2] },
-        { text: moment(v.cmpEmissao).utc().locale("pt-br").format("DD-MM-YYYY"), fontSize: 9, margin: [0, 2, 0, 2] },
-        { text: v.usrNome, fontSize: 9, margin: [0, 2, 0, 2] },
-        { text: v.cmpQtdParcela.toString(), fontSize: 9, margin: [0, 2, 0, 2] },
-        { text: formatCurrency(v.cmpVlrCompra), fontSize: 9, alignment: "right" as const, margin: [0, 2, 0, 2] }
-      ])
+      ...vendas.map((v): TableCell[] => [
+        {
+          text: v.cmpId.toString(),
+          fontSize: 9,
+          margin: [0, 2, 0, 2],
+        },
+        {
+          text: moment(v.cmpEmissao).utc().locale("pt-br").format("DD-MM-YYYY"),
+          fontSize: 9,
+          margin: [0, 2, 0, 2],
+        },
+        {
+          text: v.usrNome,
+          fontSize: 9,
+          margin: [0, 2, 0, 2],
+        },
+        {
+          text: v.cmpQtdParcela.toString(),
+          fontSize: 9,
+          margin: [0, 2, 0, 2],
+        },
+        {
+          text: formatCurrency(v.cmpVlrCompra),
+          fontSize: 9,
+          alignment: "right",
+          margin: [0, 2, 0, 2],
+        },
+      ]),
     ];
     
     const details: Content[] = [
@@ -163,7 +183,15 @@ const RelEmiCnvClient = ({ datIni, datFin, cnvId }: RelEmiCnvClientProps) => {
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="date" />
                 <YAxis />
-                <Tooltip formatter={(value: number) => Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value)} />
+                <Tooltip
+                  formatter={(value) => {
+                    const numero = Number(value ?? 0);
+                    return Intl.NumberFormat("pt-BR", {
+                      style: "currency",
+                      currency: "BRL",
+                    }).format(numero);
+                  }}
+                />
                 <Bar dataKey="total" fill="#4F46E5" radius={[5, 5, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>

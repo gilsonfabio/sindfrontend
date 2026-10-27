@@ -12,7 +12,7 @@ const Menubar = () => {
                 <div className="flex flex-row items-center ml-2 md:ml-36" >
                     <div className="flex items-center ">
                         <Link href="/" passHref>
-                            <Image src={logoBarra} alt="" width={140} height={30} />
+                            <Image src={logoBarra} alt="" width={140} height={30} style={{ width: "140px", height: "auto" }} />
                         </Link>                        
                     </div>                    
                 </div> 

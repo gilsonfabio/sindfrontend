@@ -3,7 +3,11 @@
 import React, { useState, useEffect } from "react";
 import pdfMake from "pdfmake/build/pdfmake";
 import pdfFonts from "pdfmake/build/vfs_fonts";
-import { TDocumentDefinitions, Content } from "pdfmake/interfaces";
+import {
+  TDocumentDefinitions,
+  Content,
+} from "pdfmake/interfaces";
+
 import moment from "moment";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { useRouter } from "next/navigation";
@@ -34,15 +38,6 @@ interface RelVctCnvClientProps {
   cnvId: string;
 }
 
-type PdfCell = {
-  text: string;
-  fontSize?: number;
-  margin?: number[];
-  alignment?: "left" | "right" | "center";
-  bold?: boolean;
-  style?: string;
-};
-
 const RelVctCnvClient = ({ datIni, datFin, cnvId }: RelVctCnvClientProps) => {
   const router = useRouter();
   const [vendas, setVendas] = useState<VendasProps[]>([]);
@@ -52,7 +47,7 @@ const RelVctCnvClient = ({ datIni, datFin, cnvId }: RelVctCnvClientProps) => {
   const [chartData, setChartData] = useState<{ date: string; total: number }[]>([]);
 
   // Inicializa pdfMake
-  (pdfMake as typeof pdfMake & { vfs: typeof pdfFonts.vfs }).vfs = pdfFonts.vfs;
+  (pdfMake as unknown as { vfs: typeof pdfFonts }).vfs = pdfFonts;
 
   useEffect(() => {
     setDtInicio(moment(datIni).utc(true).locale("pt-br").format("DD-MM-YYYY"));
@@ -102,29 +97,61 @@ const RelVctCnvClient = ({ datIni, datFin, cnvId }: RelVctCnvClientProps) => {
       },
     ];
 
-    const dados: PdfCell[][] = vendas.map((venda) => [
-      { text: venda.cmpId.toString(), fontSize: 9, margin: [0, 2, 0, 2] },
-      { text: moment(venda.parVctParcela).utc().locale("pt-br").format("DD-MM-YYYY"), fontSize: 9, margin: [0, 2, 0, 2] },
-      { text: venda.usrNome, fontSize: 9, margin: [0, 2, 0, 2] },
-      { text: `${venda.parNroParcela}/${venda.cmpQtdParcela}`, fontSize: 9, margin: [0, 2, 0, 2] },
-      { text: Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(venda.parVlrParcela), fontSize: 9, alignment: "right", margin: [0, 2, 0, 2] },
+    
+    const dados: Content[][] = vendas.map((venda) => [
+      {
+        text: venda.cmpId.toString(),
+        fontSize: 9,
+        margin: [0, 2, 0, 2],
+      },
+      {
+        text: moment(venda.parVctParcela)
+          .utc()
+          .locale("pt-br")
+          .format("DD-MM-YYYY"),
+        fontSize: 9,
+        margin: [0, 2, 0, 2],
+      },
+      {
+        text: venda.usrNome,
+        fontSize: 9,
+        margin: [0, 2, 0, 2],
+      },
+      {
+        text: `${venda.parNroParcela}/${venda.cmpQtdParcela}`,
+        fontSize: 9,
+        margin: [0, 2, 0, 2],
+      },
+      {
+        text: Intl.NumberFormat("pt-BR", {
+          style: "currency",
+          currency: "BRL",
+        }).format(venda.parVlrParcela),
+        fontSize: 9,
+        alignment: "right",
+        margin: [0, 2, 0, 2],
+      },
     ]);
+
+    const cabecalho: Content[] = [
+      { text: "ID", style: "tableHeader", fontSize: 10 },
+      { text: "VENCIMENTO", style: "tableHeader", fontSize: 10 },
+      { text: "NOME SERVIDOR(A)", style: "tableHeader", fontSize: 10 },
+      { text: "PARC/PLANO", style: "tableHeader", fontSize: 10 },
+      { text: "VLR. DA VENDA", style: "tableHeader", fontSize: 10 },
+    ];
+
+    const corpoTabela = [cabecalho, ...dados];
 
     const details: Content[] = [
       {
         table: {
           headerRows: 1,
           widths: [70, 70, 200, 50, 80],
-          body: [
-            [
-              { text: "ID", style: "tableHeader", fontSize: 10 },
-              { text: "VENCIMENTO", style: "tableHeader", fontSize: 10 },
-              { text: "NOME SERVIDOR(A)", style: "tableHeader", fontSize: 10 },
-              { text: "PARC/PLANO", style: "tableHeader", fontSize: 10 },
-              { text: "VLR. DA VENDA", style: "tableHeader", fontSize: 10 },
-            ],
-            ...dados,
-          ],
+          body: corpoTabela as TDocumentDefinitions["content"] extends
+            (infer T)[] | undefined
+            ? never
+            : never,
         },
         layout: "headerLineOnly",
       },
@@ -201,7 +228,15 @@ const RelVctCnvClient = ({ datIni, datFin, cnvId }: RelVctCnvClientProps) => {
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="date" />
                 <YAxis />
-                <Tooltip formatter={(value: number) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value)} />
+                <Tooltip
+                  formatter={(value) => {
+                    const numero = Number(value ?? 0);
+                      return Intl.NumberFormat("pt-BR", {
+                        style: "currency",
+                        currency: "BRL",
+                      }).format(numero);
+                    }}
+                />
                 <Bar dataKey="total" fill="#4F46E5" radius={[5, 5, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
