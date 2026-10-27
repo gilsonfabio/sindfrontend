@@ -36,6 +36,7 @@ const SignUpForm = () => {
         password,
       });
 
+      /*
       const data = response.data;
 
       // Backend solicitou novo login
@@ -55,11 +56,21 @@ const SignUpForm = () => {
       }
 
       const { cnvId, cnvNomFantasia } = data.user;
-
+ 
       // Validação extra
       if (!cnvId || !cnvNomFantasia) {
         throw new Error("Dados do usuário inválidos.");
       }
+      */
+     
+      const data = response.data;
+      const { cnvId, cnvNomFantasia } = data;
+
+      // Validação dos dados retornados
+      if (cnvId == null || !cnvNomFantasia) {
+        throw new Error("Dados do convênio não retornados pela API.");
+      }
+   
 
       // Salva sessão
       sessionStorage.setItem("id", cnvId.toString());

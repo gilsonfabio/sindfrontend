@@ -135,18 +135,18 @@ const CnfLancamento = () => {
 
         if (saldo < valorParcela) {
           alert(
-            `Saldo insuficiente.\nValor da parcela: ${valorParcela.toFixed(2)}`
+            `Falha na confirmação da compra! Código 55 - \nValor da parcela: ${valorParcela.toFixed(2)}`
           );
           return;
         }
 
         if (statusUsr !== "A") {
-          alert("Usuário bloqueado/inativo.");
+          alert("Falha na confirmação da compra! Código 54 ");
           return;
         }
 
         if (Number(qtdParcelas) > maxParc) {
-          alert("Quantidade de parcelas excedida.");
+          alert("Falha na confirmação da compra! Código 56 ");
           return;
         }
 
