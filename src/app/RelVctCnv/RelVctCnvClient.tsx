@@ -53,22 +53,43 @@ const RelVctCnvClient = ({ datIni, datFin, cnvId }: RelVctCnvClientProps) => {
     setDtInicio(moment(datIni).utc(true).locale("pt-br").format("DD-MM-YYYY"));
     setDtFinal(moment(datFin).utc(true).locale("pt-br").format("DD-MM-YYYY"));
 
+    if (!datIni || !datFin || !cnvId) {
+      setVendas([]);
+      setChartData([]);
+      return;
+    }
+
     api
-      .get(`pdfVctCmpCnv/${datIni}/${datFin}/${cnvId}`)
+      .get(
+        `pdfVctCmpCnv/${encodeURIComponent(datIni)}/${encodeURIComponent(datFin)}/${encodeURIComponent(String(cnvId))}`
+      )
       .then((resp) => {
+        console.log("Resposta da API:", resp.data);
+
         setVendas(resp.data);
-        if (resp.data.length > 0) setCnvNomFantasia(resp.data[0].cnvNomFantasia);
+
+        if (resp.data.length > 0) {
+          setCnvNomFantasia(resp.data[0].cnvNomFantasia);
+        }
 
         const grouped: { [key: string]: number } = {};
+
         resp.data.forEach((v: VendasProps) => {
           const date = moment(v.parVctParcela).utc().format("DD/MM");
-          grouped[date] = (grouped[date] || 0) + v.parVlrParcela;
+
+          grouped[date] = (grouped[date] || 0) + Number(v.parVlrParcela);
         });
 
-        const dataForChart = Object.keys(grouped).map((date) => ({ date, total: grouped[date] }));
+        const dataForChart = Object.keys(grouped).map((date) => ({
+          date,
+          total: grouped[date],
+        }));
+
         setChartData(dataForChart);
       })
-      .catch((err) => console.error(err));
+      .catch((err) => {
+        console.error("Erro ao consultar compras por vencimento:", err);
+      });
   }, [datIni, datFin, cnvId]);
 
   const totCompras = vendas.reduce((prev, curr) => prev + curr.parVlrParcela, 0);
