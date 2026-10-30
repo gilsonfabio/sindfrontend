@@ -59,25 +59,32 @@ const RelVctCnvClient = ({ datIni, datFin, cnvId }: RelVctCnvClientProps) => {
       return;
     }
 
-    api
-      .get(
-        `pdfVctCmpCnv/${encodeURIComponent(datIni)}/${encodeURIComponent(datFin)}/${encodeURIComponent(String(cnvId))}`
-      )
+    const url = `pdfVctCmpCnv/${encodeURIComponent(datIni)}/${encodeURIComponent(datFin)}/${encodeURIComponent(cnvId)}`;
+
+    console.log("URL da consulta:", url);
+    console.log("Parâmetros enviados:", { datIni, datFin, cnvId });
+
+    api.get(url)
       .then((resp) => {
         console.log("Resposta da API:", resp.data);
 
-        setVendas(resp.data);
+        const registros: VendasProps[] = resp.data;
 
-        if (resp.data.length > 0) {
-          setCnvNomFantasia(resp.data[0].cnvNomFantasia);
+        setVendas(registros);
+
+        if (registros.length > 0) {
+          setCnvNomFantasia(registros[0].cnvNomFantasia);
+        } else {
+          setCnvNomFantasia("");
         }
 
-        const grouped: { [key: string]: number } = {};
+        const grouped: Record<string, number> = {};
 
-        resp.data.forEach((v: VendasProps) => {
-          const date = moment(v.parVctParcela).utc().format("DD/MM");
+        registros.forEach((venda) => {
+          const date = moment(venda.parVctParcela).utc().format("DD/MM");
 
-          grouped[date] = (grouped[date] || 0) + Number(v.parVlrParcela);
+          grouped[date] =
+            (grouped[date] || 0) + Number(venda.parVlrParcela);
         });
 
         const dataForChart = Object.keys(grouped).map((date) => ({
@@ -89,7 +96,11 @@ const RelVctCnvClient = ({ datIni, datFin, cnvId }: RelVctCnvClientProps) => {
       })
       .catch((err) => {
         console.error("Erro ao consultar compras por vencimento:", err);
+        console.error("URL da requisição:", err.config?.url);
+        console.error("Status HTTP:", err.response?.status);
+        console.error("Resposta do servidor:", err.response?.data);
       });
+
   }, [datIni, datFin, cnvId]);
 
   const totCompras = vendas.reduce((prev, curr) => prev + curr.parVlrParcela, 0);

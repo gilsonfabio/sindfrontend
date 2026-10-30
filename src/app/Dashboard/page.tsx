@@ -100,13 +100,11 @@ const Dashboard = () => {
 
   function handleVencto() {
     if (!idCnv) return;
-
+  
     router.push(
-      `/RelVctCnv?id=${encodeURIComponent(
-        idCnv
-      )}&datIni=${encodeURIComponent(
-        formatDate(auxInicial)
-      )}&datFin=${encodeURIComponent(formatDate(auxFinal))}`
+      `/RelVctCnv?cnvId=${encodeURIComponent(idCnv)}` +
+      `&datIni=${encodeURIComponent(formatDate(auxInicial))}` +
+      `&datFin=${encodeURIComponent(formatDate(auxFinal))}`
     );
   }
 
