@@ -53,7 +53,7 @@ const SignUpForm = () => {
         setPassword("");
 
         // Retorna à página de login.
-        router.replace("/loginCnv");
+        router.replace("/");
 
         return;
       }
