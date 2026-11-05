@@ -26,16 +26,29 @@ export default function SignInAdmClient({ cmpId }: SignInAdmClientProps) {
     setSuccess("");
 
     try {
-      const response = await api.get(`signInCnc/${email}/${password}`);
+      const response = await api.post("signInCnc", {
+        email,
+        password,
+      });
+
       const idUsuario = response.data.cnvId;
 
-      await api.put(`cncCompra/${cmpId}`, { cmpIdCanc: idUsuario });
+      await api.put(`cncCompra/${cmpId}`, {
+        cmpIdCanc: idUsuario,
+      });
 
       setSuccess("Compra excluída com sucesso!");
-      setTimeout(() => router.back(), 1500);
+
+      setError("");
+
+      setTimeout(() => {
+        router.push("/Dashboard");
+      }, 2000);
+
     } catch (err) {
       console.error(err);
-      setError("Falha no login ou exclusão da compra!");
+      setError("Falha no login ou cancelamento da compra!");
+
     } finally {
       setLoading(false);
     }
